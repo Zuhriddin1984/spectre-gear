@@ -1,5 +1,5 @@
 import { getTr } from '@/lib/i18n';
-import { createServiceClient } from '@/lib/supabase/server';
+import { createServiceClient, missingEnv } from '@/lib/supabase/server';
 import { pinConfigured } from '@/lib/pin';
 import { errText, roleLabel } from '@/lib/format';
 import { createFirstAdmin, pinSignIn } from './actions';
@@ -8,13 +8,18 @@ export const dynamic = 'force-dynamic';
 
 export default async function Login({ searchParams }: { searchParams: { err?: string } }) {
   const { lang, t } = getTr();
-  const ready = pinConfigured();
+  const missing = missingEnv();
+  const ready = pinConfigured() && missing.length === 0;
   let staff: { id: string; full_name: string | null; role: string }[] = [];
   let loadError = '';
   if (ready) {
-    const { data, error } = await createServiceClient().from('profiles').select('id, full_name, role').order('full_name');
-    staff = data ?? [];
-    loadError = error?.message ?? '';
+    try {
+      const { data, error } = await createServiceClient().from('profiles').select('id, full_name, role').order('full_name');
+      staff = data ?? [];
+      loadError = error?.message ?? '';
+    } catch (e) {
+      loadError = e instanceof Error ? e.message : String(e);
+    }
   }
   const first = ready && !loadError && staff.length === 0;
 
@@ -22,7 +27,12 @@ export default async function Login({ searchParams }: { searchParams: { err?: st
     <form action={first ? createFirstAdmin : pinSignIn} className="panel stack login">
       <div className="brand"><span className="tally" /><b>Spectre Gear</b></div>
       <p className="note" style={{ margin: 0 }}>{t('Spectrerental ходимлари учун ички тизим', 'Внутренняя система для сотрудников Spectrerental')}</p>
-      {!ready && <div className="warnbox">{errText('NO_KEYS', lang)}</div>}
+      {!ready && (
+        <div className="warnbox">
+          {errText('NO_KEYS', lang)}
+          <div className="note">{t('Йўқ:', 'Нет:')} {missing.join(', ')}</div>
+        </div>
+      )}
       {loadError && <div className="warnbox">{t('Базага уланиб бўлмади', 'Не удалось подключиться к базе')}<div className="note">{loadError}</div></div>}
       {searchParams.err && <div className="warnbox">{errText(searchParams.err, lang)}</div>}
       {first ? (

@@ -27,12 +27,24 @@ export function createServiceClient() {
   });
 }
 
+// Names of required settings that are not set in the hosting environment.
+export function missingEnv() {
+  return ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'ACCESS_PIN'].filter((k) => !process.env[k]);
+}
+
 export async function getProfile() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-  return { id: user.id, email: user.email ?? '', name: data?.full_name ?? user.email ?? '', role: (data?.role ?? 'tech') as Role };
+  // Before the site is configured there is no session to read; the login page explains what is missing.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    return { id: user.id, email: user.email ?? '', name: data?.full_name ?? user.email ?? '', role: (data?.role ?? 'tech') as Role };
+  } catch (e) {
+    console.error('getProfile failed', e);
+    return null;
+  }
 }
 
 export type Role = 'admin' | 'store' | 'manager' | 'tech';
