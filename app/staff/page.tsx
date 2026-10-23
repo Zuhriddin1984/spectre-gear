@@ -2,7 +2,7 @@ import { createClient, getProfile } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { ROLES, roleLabel } from '@/lib/format';
 import ErrorBox from '@/components/ErrorBox';
-import { saveStaff } from './actions';
+import { addStaff, saveStaff } from './actions';
 
 const RIGHTS: Record<string, [string, string]> = {
   admin: ['Ҳамма нарса, нархларни ўзгартириш, ходим ролларини бериш', 'Всё, изменение цен, назначение ролей'],
@@ -32,14 +32,17 @@ export default async function Staff({ searchParams }: { searchParams: { err?: st
           </form>
         ))}
       </div>
-      <section className="panel" style={{ marginTop: 16 }}>
-        <h2>{t('Янги ходим қўшиш', 'Как добавить сотрудника')}</h2>
-        <ol className="note" style={{ margin: 0, paddingLeft: 18 }}>
-          <li>{t('supabase.com да лойиҳани очинг → Authentication → Users → Add user → Create new user.', 'Откройте проект на supabase.com → Authentication → Users → Add user → Create new user.')}</li>
-          <li>{t('Email ва парол ёзинг, «Auto Confirm User» белгисини қўйинг.', 'Введите email и пароль, отметьте «Auto Confirm User».')}</li>
-          <li>{t('Ходим шу email ва парол билан киради. Кейин бу ерда унинг исми ва ролини белгиланг.', 'Сотрудник входит с этим email и паролем. Затем здесь укажите имя и роль.')}</li>
-        </ol>
-      </section>
+      {admin && (
+        <form action={addStaff} className="panel stack" style={{ marginTop: 16, maxWidth: 520 }}>
+          <h2>{t('Янги ходим қўшиш', 'Добавить сотрудника')}</h2>
+          <div className="f2">
+            <label className="field"><span>{t('Исми', 'Имя')}</span><input name="full_name" required /></label>
+            <label className="field"><span>{t('Роли', 'Роль')}</span><select name="role" defaultValue="tech">{Object.keys(ROLES).map((r) => <option key={r} value={r}>{roleLabel(r, lang)}</option>)}</select></label>
+          </div>
+          <p className="note" style={{ margin: 0 }}>{t('Ходим кириш саҳифасида ўз исмини танлайди ва умумий PIN-кодни киритади. PIN Vercel’даги ACCESS_PIN қийматида сақланади.', 'Сотрудник выбирает своё имя на странице входа и вводит общий PIN-код. PIN хранится в Vercel в значении ACCESS_PIN.')}</p>
+          <div><button className="btn primary">{t('Қўшиш', 'Добавить')}</button></div>
+        </form>
+      )}
     </>
   );
 }

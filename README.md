@@ -9,9 +9,9 @@ Spectrerental учун ички ускуна бошқаруви тизими: 28
 ### 1. Supabase (база)
 1. https://supabase.com га GitHub орқали киринг → **New project**. Номи: `spectre-gear`, Region: **Central EU (Frankfurt)**, база паролини сақлаб қўйинг.
 2. Лойиҳа очилгач: **SQL Editor** → **New query**. `supabase/migrations/0001_init.sql` файлининг бутун матнини қўйинг → **Run**.
-3. Яна **New query** → `supabase/seed.sql` матнини қўйинг → **Run** (284 та ускуна ва тоифалар қўшилади).
-4. **Authentication → Users → Add user → Create new user**: ўзингизнинг email ва паролингиз, **Auto Confirm User** белгиланган. Биринчи қўшилган фойдаланувчи автоматик **администратор** бўлади.
-5. **Project Settings → API** бўлимидан учта қийматни олинг: `Project URL`, `anon public` калит ва `service_role` калит.
+3. Яна **New query** → `supabase/migrations/0002_pin_login.sql` матнини қўйинг → **Run**.
+4. Яна **New query** → `supabase/seed.sql` матнини қўйинг → **Run** (284 та ускуна ва тоифалар қўшилади).
+5. **Project Settings → API Keys** бўлимидан учта қийматни олинг: `Project URL`, **Legacy API Keys** варағидаги `anon public` (`eyJ...`) ва `service_role` калитлар.
 
 ### 2. Vercel (хостинг)
 1. https://vercel.com га GitHub орқали киринг → **Add New → Project** → `spectre-gear` репосини **Import** қилинг.
@@ -19,9 +19,11 @@ Spectrerental учун ички ускуна бошқаруви тизими: 28
    - `NEXT_PUBLIC_SUPABASE_URL` = Project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = anon public калит
    - `SUPABASE_SERVICE_ROLE_KEY` = service_role калит (махфий, ҳеч кимга берманг)
+   - `ACCESS_PIN` = ходимлар кирадиган умумий PIN-код (4–6 рақам)
    - `CRON_SECRET` = исталган узун тасодифий матн
    - ихтиёрий: `COMPANY_NAME`, `COMPANY_DETAILS` (СТИР, ҳисоб рақам, манзил), `COMPANY_CITY` — шартномада чиқади
-3. **Deploy**. Тайёр бўлгач, `https://spectre-gear-....vercel.app` манзили беради. Кейин ўз доменингизни (масалан, `gear.spectrerental.uz`) **Settings → Domains** да улаш мумкин.
+3. **Deploy** (калитларни кейин ўзгартирсангиз: **Deployments → ⋯ → Redeploy**). **Settings → Deployment Protection → Vercel Authentication** ни ўчиринг, акс ҳолда ходимлар сайтни очолмайди.
+4. Сайтни очинг: биринчи киришда исмингиз ва PIN сўралади, сиз **администратор** бўласиз. Бошқа ходимларни **Ходимлар** бўлимидан қўшасиз. Тайёр бўлгач, `https://spectre-gear-....vercel.app` манзили беради. Кейин ўз доменингизни (масалан, `gear.spectrerental.uz`) **Settings → Domains** да улаш мумкин.
 
 ### 3. Telegram эслатма (ихтиёрий)
 1. Telegram'да **@BotFather** → `/newbot` → бот номи → токен беради.

@@ -48,6 +48,10 @@ export function weekday(d: string, lang: Lang) {
 export function errText(message: string | undefined, lang: Lang): string {
   if (!message) return '';
   const t = (uz: string, ru: string) => (lang === 'ru' ? ru : uz);
+  if (message === 'BAD_PIN') return t('PIN-код нотўғри.', 'Неверный PIN-код.');
+  if (message === 'LOCKED') return t('Кўп марта нотўғри PIN киритилди. 15 дақиқадан кейин қайта уриниб кўринг.', 'Слишком много неверных PIN. Попробуйте через 15 минут.');
+  if (message === 'NO_KEYS') return t('Сайт созланмаган: Vercel’да NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ва ACCESS_PIN киритилиб, Redeploy қилиниши керак.', 'Сайт не настроен: в Vercel нужно указать NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY и ACCESS_PIN и сделать Redeploy.');
+  if (message === 'ALREADY_SET_UP') return t('Администратор аллақачон яратилган. Рўйхатдан исмингизни танланг.', 'Администратор уже создан. Выберите своё имя из списка.');
   if (message.startsWith('CONFLICT')) return t('Бу ускуналар бу саналарда банд: ', 'Эти позиции заняты на эти даты: ') + message.replace(/^CONFLICT:\s*/, '');
   if (message.includes('no_double_booking')) return t('Ускуна бу саналарда банд.', 'Позиция занята на эти даты.');
   if (message === 'NO_ITEMS') return t('Камида битта ускуна қўшинг.', 'Добавьте хотя бы одну позицию.');
