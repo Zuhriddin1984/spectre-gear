@@ -7,6 +7,6 @@ export async function signIn(form: FormData) {
     email: String(form.get('email') ?? ''),
     password: String(form.get('password') ?? ''),
   });
-  if (error) redirect('/login?err=1');
+  if (error) redirect('/login?err=' + encodeURIComponent(error.message || error.name || 'error'));
   redirect('/');
 }
