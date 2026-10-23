@@ -1,8 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { createClient, createServiceClient, getProfile } from '@/lib/supabase/server';
-import { createStaffUser } from '@/lib/pin';
+import { createClient } from '@/lib/supabase/server';
 
 export async function saveStaff(id: string, form: FormData) {
   const patch: Record<string, string> = { full_name: String(form.get('full_name') ?? '').trim() };
@@ -14,20 +13,15 @@ export async function saveStaff(id: string, form: FormData) {
 }
 
 export async function addStaff(form: FormData) {
-  const me = await getProfile();
-  if (me?.role !== 'admin') redirect('/staff?err=ONLY_ADMIN_CHANGES_ROLES');
   const name = String(form.get('full_name') ?? '').trim();
   const role = String(form.get('role') ?? 'tech');
   if (!name) redirect('/staff');
-  let err = '';
-  try {
-    const user = await createStaffUser(name);
-    // the signup trigger made a 'tech' profile; set the chosen role with the server key
-    const { error } = await createServiceClient().from('profiles').update({ full_name: name, role }).eq('id', user.id);
-    err = error?.message ?? '';
-  } catch (e) {
-    err = (e as Error).message;
-  }
+  const { error } = await createClient().rpc('add_staff', { p_name: name, p_role: role });
   revalidatePath('/', 'layout');
-  redirect('/staff' + (err ? '?err=' + encodeURIComponent(err) : ''));
+  redirect('/staff' + (error ? '?err=' + encodeURIComponent(error.message) : ''));
+}
+
+export async function setPin(form: FormData) {
+  const { error } = await createClient().rpc('set_access_pin', { p_pin: String(form.get('pin') ?? '') });
+  redirect('/staff?' + (error ? 'err=' + encodeURIComponent(error.message) : 'pin=ok'));
 }

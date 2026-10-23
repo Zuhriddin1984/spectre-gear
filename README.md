@@ -7,23 +7,26 @@ Spectrerental учун ички ускуна бошқаруви тизими: 28
 ## Ишга тушириш (бир марта)
 
 ### 1. Supabase (база)
-1. https://supabase.com га GitHub орқали киринг → **New project**. Номи: `spectre-gear`, Region: **Central EU (Frankfurt)**, база паролини сақлаб қўйинг.
-2. Лойиҳа очилгач: **SQL Editor** → **New query**. `supabase/migrations/0001_init.sql` файлининг бутун матнини қўйинг → **Run**.
-3. Яна **New query** → `supabase/migrations/0002_pin_login.sql` матнини қўйинг → **Run**.
-4. Яна **New query** → `supabase/seed.sql` матнини қўйинг → **Run** (284 та ускуна ва тоифалар қўшилади).
-5. **Project Settings → API Keys** бўлимидан учта қийматни олинг: `Project URL`, **Legacy API Keys** варағидаги `anon public` (`eyJ...`) ва `service_role` калитлар.
+1. https://supabase.com га GitHub орқали киринг → **New project** (ёки Vercel → **Storage → Supabase**).
+2. **SQL Editor → New query** орқали навбат билан ишга туширинг: `supabase/migrations/0001_init.sql`, `0002_pin_login.sql`, `0003_db_login.sql`, кейин `supabase/seed.sql` (284 та ускуна).
+3. PIN-код ва эслатма калитини ўрнатинг (SQL Editor):
+   ```sql
+   insert into app_secrets values
+     ('pin_hash', extensions.crypt('1234', extensions.gen_salt('bf'))),
+     ('cron_secret', 'исталган-узун-тасодифий-матн');
+   ```
+   PIN кейин сайтдаги **Ходимлар** бўлимидан ўзгартирилади.
+4. **Project Settings → API Keys** дан иккита очиқ қиймат олинг: `Project URL` ва **Legacy API Keys** варағидаги `anon public` (`eyJ...`). Махфий `service_role` калит керак эмас.
 
 ### 2. Vercel (хостинг)
 1. https://vercel.com га GitHub орқали киринг → **Add New → Project** → `spectre-gear` репосини **Import** қилинг.
 2. **Environment Variables** бўлимига қўшинг:
    - `NEXT_PUBLIC_SUPABASE_URL` = Project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = anon public калит
-   - `SUPABASE_SERVICE_ROLE_KEY` = service_role калит (махфий, ҳеч кимга берманг)
-   - `ACCESS_PIN` = ходимлар кирадиган умумий PIN-код (4–6 рақам)
-   - `CRON_SECRET` = исталган узун тасодифий матн
+   - `CRON_SECRET` = базадаги `cron_secret` билан бир хил матн
    - ихтиёрий: `COMPANY_NAME`, `COMPANY_DETAILS` (СТИР, ҳисоб рақам, манзил), `COMPANY_CITY` — шартномада чиқади
 3. **Deploy** (калитларни кейин ўзгартирсангиз: **Deployments → ⋯ → Redeploy**). **Settings → Deployment Protection → Vercel Authentication** ни ўчиринг, акс ҳолда ходимлар сайтни очолмайди.
-4. Сайтни очинг: биринчи киришда исмингиз ва PIN сўралади, сиз **администратор** бўласиз. Бошқа ходимларни **Ходимлар** бўлимидан қўшасиз. Тайёр бўлгач, `https://spectre-gear-....vercel.app` манзили беради. Кейин ўз доменингизни (масалан, `gear.spectrerental.uz`) **Settings → Domains** да улаш мумкин.
+4. Сайтни очинг: биринчи киришда исмингиз ва PIN сўралади, сиз **администратор** бўласиз. Бошқа ходимларни **Ходимлар** бўлимидан қўшасиз. Кейин ўз доменингизни (масалан, `gear.spectrerental.uz`) **Settings → Domains** да улаш мумкин.
 
 ### 3. Telegram эслатма (ихтиёрий)
 1. Telegram'да **@BotFather** → `/newbot` → бот номи → токен беради.

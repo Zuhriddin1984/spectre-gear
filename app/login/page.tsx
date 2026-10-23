@@ -1,6 +1,5 @@
 import { getTr } from '@/lib/i18n';
-import { createServiceClient, missingEnv } from '@/lib/supabase/server';
-import { pinConfigured } from '@/lib/pin';
+import { createClient, missingEnv } from '@/lib/supabase/server';
 import { errText, roleLabel } from '@/lib/format';
 import { createFirstAdmin, pinSignIn } from './actions';
 
@@ -9,12 +8,12 @@ export const dynamic = 'force-dynamic';
 export default async function Login({ searchParams }: { searchParams: { err?: string } }) {
   const { lang, t } = getTr();
   const missing = missingEnv();
-  const ready = pinConfigured() && missing.length === 0;
+  const ready = missing.length === 0;
   let staff: { id: string; full_name: string | null; role: string }[] = [];
   let loadError = '';
   if (ready) {
     try {
-      const { data, error } = await createServiceClient().from('profiles').select('id, full_name, role').order('full_name');
+      const { data, error } = await createClient().rpc('login_staff');
       staff = data ?? [];
       loadError = error?.message ?? '';
     } catch (e) {

@@ -1,52 +1,32 @@
 'use server';
 import { redirect } from 'next/navigation';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { clearFailures, createStaffUser, lockedOut, pinConfigured, pinMatches, recordFailure } from '@/lib/pin';
+import { createClient, missingEnv } from '@/lib/supabase/server';
 
 const fail = (code: string) => redirect('/login?err=' + encodeURIComponent(code));
 
-// Turns a staff member into a signed-in Supabase session without a password:
-// the server issues a one-time login token and redeems it into the cookies.
-async function startSession(userId: string) {
-  const admin = createServiceClient();
-  const { data: u, error: e1 } = await admin.auth.admin.getUserById(userId);
-  if (e1 || !u.user?.email) fail(e1?.message ?? 'NO_USER');
-  const { data: link, error: e2 } = await admin.auth.admin.generateLink({ type: 'magiclink', email: u.user!.email! });
-  if (e2) fail(e2.message);
-  const { error: e3 } = await createClient().auth.verifyOtp({ type: 'magiclink', token_hash: link.properties!.hashed_token });
-  if (e3) fail(e3.message);
+// The database checks the PIN and returns a fresh one-time password for the chosen
+// person (see 0003_db_login.sql); signing in with it puts the session into the cookies.
+async function signInWith(rpc: { data: any; error: { message: string } | null }) {
+  if (rpc.error) fail(rpc.error.message);
+  const res = rpc.data as { email?: string; password?: string; error?: string } | null;
+  if (!res?.email || !res.password) fail(res?.error ?? 'NO_USER');
+  const { error } = await createClient().auth.signInWithPassword({ email: res!.email!, password: res!.password! });
+  if (error) fail(error.message);
 }
 
 export async function pinSignIn(form: FormData) {
-  if (!pinConfigured()) fail('NO_KEYS');
-  if (await lockedOut()) fail('LOCKED');
+  if (missingEnv().length) fail('NO_KEYS');
   const staff = String(form.get('staff') ?? '');
-  if (!pinMatches(String(form.get('pin') ?? '').trim())) {
-    await recordFailure();
-    fail('BAD_PIN');
-  }
-  await clearFailures();
-  await startSession(staff);
+  const pin = String(form.get('pin') ?? '').trim();
+  await signInWith(await createClient().rpc('pin_sign_in', { p_user: staff, p_pin: pin }));
   redirect('/');
 }
 
 // Only possible while no staff exist yet: creates the first admin.
 export async function createFirstAdmin(form: FormData) {
-  if (!pinConfigured()) fail('NO_KEYS');
-  if (await lockedOut()) fail('LOCKED');
-  const { count } = await createServiceClient().from('profiles').select('id', { count: 'exact', head: true });
-  if ((count ?? 0) > 0) fail('ALREADY_SET_UP');
-  if (!pinMatches(String(form.get('pin') ?? '').trim())) {
-    await recordFailure();
-    fail('BAD_PIN');
-  }
-  const name = String(form.get('name') ?? '').trim() || 'Admin';
-  let id = '';
-  try {
-    id = (await createStaffUser(name)).id;
-  } catch (e) {
-    fail((e as Error).message);
-  }
-  await startSession(id);
+  if (missingEnv().length) fail('NO_KEYS');
+  const name = String(form.get('name') ?? '').trim();
+  const pin = String(form.get('pin') ?? '').trim();
+  await signInWith(await createClient().rpc('create_first_admin', { p_name: name, p_pin: pin }));
   redirect('/');
 }

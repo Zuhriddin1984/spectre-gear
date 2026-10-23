@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { createClient as createPlainClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 export function createClient() {
@@ -20,16 +20,16 @@ export function createClient() {
   });
 }
 
-// Service-role client for background jobs only (bypasses row level security).
-export function createServiceClient() {
-  return createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+// Client without a user session, for background jobs (they call secret-checked database functions).
+export function createAnonClient() {
+  return createPlainClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     auth: { persistSession: false },
   });
 }
 
 // Names of required settings that are not set in the hosting environment.
 export function missingEnv() {
-  return ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'ACCESS_PIN'].filter((k) => !process.env[k]);
+  return ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'].filter((k) => !process.env[k]);
 }
 
 export async function getProfile() {

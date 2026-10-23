@@ -50,7 +50,10 @@ export function errText(message: string | undefined, lang: Lang): string {
   const t = (uz: string, ru: string) => (lang === 'ru' ? ru : uz);
   if (message === 'BAD_PIN') return t('PIN-код нотўғри.', 'Неверный PIN-код.');
   if (message === 'LOCKED') return t('Кўп марта нотўғри PIN киритилди. 15 дақиқадан кейин қайта уриниб кўринг.', 'Слишком много неверных PIN. Попробуйте через 15 минут.');
-  if (message === 'NO_KEYS') return t('Сайт созланмаган: Vercel’да NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ва ACCESS_PIN киритилиб, Redeploy қилиниши керак.', 'Сайт не настроен: в Vercel нужно указать NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY и ACCESS_PIN и сделать Redeploy.');
+  if (message === 'NO_KEYS') return t('Сайт созланмаган: Vercel’да NEXT_PUBLIC_SUPABASE_URL ва NEXT_PUBLIC_SUPABASE_ANON_KEY киритилиб, Redeploy қилиниши керак.', 'Сайт не настроен: в Vercel нужно указать NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY и сделать Redeploy.');
+  if (message === 'NO_PIN') return t('PIN-код ҳали ўрнатилмаган.', 'PIN-код ещё не задан.');
+  if (message === 'PIN_TOO_SHORT') return t('PIN камида 4 та белгидан иборат бўлсин.', 'PIN должен быть не короче 4 символов.');
+  if (message === 'NO_USER') return t('Бу ходим топилмади.', 'Сотрудник не найден.');
   if (message === 'ALREADY_SET_UP') return t('Администратор аллақачон яратилган. Рўйхатдан исмингизни танланг.', 'Администратор уже создан. Выберите своё имя из списка.');
   if (message.startsWith('CONFLICT')) return t('Бу ускуналар бу саналарда банд: ', 'Эти позиции заняты на эти даты: ') + message.replace(/^CONFLICT:\s*/, '');
   if (message.includes('no_double_booking')) return t('Ускуна бу саналарда банд.', 'Позиция занята на эти даты.');
