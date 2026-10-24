@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
-// Camera QR reader. Calls onCode with the item code ("spectre:CAM-011" → "CAM-011").
+// Camera QR reader. Calls onCode with the item code ("https://…/items/CAM-011" or "spectre:CAM-011" → "CAM-011").
 export default function Scanner({ onCode, labels }: { onCode: (code: string) => void; labels: { start: string; stop: string; denied: string } }) {
   const [on, setOn] = useState(false);
   const [err, setErr] = useState('');
@@ -20,7 +20,8 @@ export default function Scanner({ onCode, labels }: { onCode: (code: string) => 
       ref.current = s;
       try {
         await s.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, (text: string) => {
-          const code = text.replace(/^spectre:/i, '').trim().toUpperCase();
+          const m = text.match(/\/items\/([^/?#]+)/);
+          const code = (m ? decodeURIComponent(m[1]) : text.replace(/^spectre:/i, '')).trim().toUpperCase();
           const now = Date.now();
           if (code === last.current.code && now - last.current.at < 2500) return;
           last.current = { code, at: now };

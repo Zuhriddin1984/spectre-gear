@@ -10,6 +10,7 @@ export async function setLang(form: FormData) {
 }
 
 export async function signOut() {
-  await createClient().auth.signOut();
+  // local: signing out on one device keeps the same person signed in on their others
+  await createClient().auth.signOut({ scope: 'local' });
   redirect('/login');
 }

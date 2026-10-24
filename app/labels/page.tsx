@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { getCategories } from '@/lib/data';
 import PrintButton from '@/components/PrintButton';
+import { itemUrl } from '@/lib/qr';
 
 export default async function Labels({ searchParams }: { searchParams: { cat?: string; codes?: string } }) {
   const { lang, t } = getTr();
@@ -13,7 +14,7 @@ export default async function Labels({ searchParams }: { searchParams: { cat?: s
   let q = sb.from('items').select('code, name').eq('active', true).order('code');
   q = codes.length ? q.in('code', codes) : q.eq('category', cat);
   const { data } = await q;
-  const labels = await Promise.all((data ?? []).map(async (i) => ({ ...i, svg: await QRCode.toString('spectre:' + i.code, { type: 'svg', margin: 0 }) })));
+  const labels = await Promise.all((data ?? []).map(async (i) => ({ ...i, svg: await QRCode.toString(itemUrl(i.code), { type: 'svg', margin: 0 }) })));
   return (
     <>
       <div className="noprint">

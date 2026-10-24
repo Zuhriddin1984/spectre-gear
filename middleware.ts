@@ -43,8 +43,10 @@ async function session(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user && !request.nextUrl.pathname.startsWith('/login')) {
     const url = request.nextUrl.clone();
+    // come back to the scanned item (or any page) after signing in
+    const next = request.nextUrl.pathname === '/' ? '' : request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = '/login';
-    url.search = '';
+    url.search = next ? '?next=' + encodeURIComponent(next) : '';
     return NextResponse.redirect(url);
   }
   return response;

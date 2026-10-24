@@ -4,8 +4,10 @@ import { createClient, getProfile } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { getCategories, type Item } from '@/lib/data';
 import { addDays, dm, dmy, today } from '@/lib/format';
+import { itemUrl } from '@/lib/qr';
 import Status from '@/components/Status';
 import ErrorBox from '@/components/ErrorBox';
+import PhotoInput from '@/components/PhotoInput';
 import { clearIssue, giveBooking, quickGive, returnOne, saveItem, setIssue, toggleRepair, uploadPhoto } from './actions';
 
 const EVENT: Record<string, [string, string]> = {
@@ -36,7 +38,7 @@ export default async function ItemPage({ params, searchParams }: { params: { cod
     item.booking_id ? sb.from('bookings').select('id, number, state, start_date, end_date, clients(name, phone)').eq('id', item.booking_id).single() : Promise.resolve({ data: null }),
   ]);
   const b: any = booking.data;
-  const qr = await QRCode.toDataURL('spectre:' + item.code, { margin: 1, width: 220 });
+  const qr = await QRCode.toDataURL(itemUrl(item.code), { margin: 1, width: 220 });
   const cat = cats.find((c) => c.slug === item.category);
   const isAdmin = me?.role === 'admin';
   const save = saveItem.bind(null, item.code);
@@ -90,7 +92,7 @@ export default async function ItemPage({ params, searchParams }: { params: { cod
         <div className="stack">
           <div className="photo">{item.photo_url ? <img src={item.photo_url} alt={item.name} /> : t('Расм йўқ', 'Нет фото')}</div>
           <form action={uploadPhoto.bind(null, item.code)} className="row">
-            <input type="file" name="photo" accept="image/*" capture="environment" required />
+            <PhotoInput />
             <button className="btn">{t('Расм юклаш', 'Загрузить фото')}</button>
           </form>
           <div className="row">

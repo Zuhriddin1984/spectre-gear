@@ -5,7 +5,7 @@ import { createFirstAdmin, pinSignIn } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Login({ searchParams }: { searchParams: { err?: string } }) {
+export default async function Login({ searchParams }: { searchParams: { err?: string; next?: string } }) {
   const { lang, t } = getTr();
   const missing = missingEnv();
   const ready = missing.length === 0;
@@ -25,6 +25,7 @@ export default async function Login({ searchParams }: { searchParams: { err?: st
   return (
     <form action={first ? createFirstAdmin : pinSignIn} className="panel stack login">
       <div className="brand"><span className="tally" /><b>Spectre Gear</b></div>
+      {searchParams.next && <input type="hidden" name="next" value={searchParams.next} />}
       <p className="note" style={{ margin: 0 }}>{t('Spectrerental ходимлари учун ички тизим', 'Внутренняя система для сотрудников Spectrerental')}</p>
       {!ready && (
         <div className="warnbox">

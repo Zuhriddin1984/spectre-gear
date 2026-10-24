@@ -34,7 +34,7 @@ export async function uploadPhoto(code: string, form: FormData) {
   if (!file || !file.size) back(code);
   const ext = (file!.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
   const path = `${code}-${Date.now()}.${ext}`;
-  const { error } = await sb.storage.from('photos').upload(path, file!, { contentType: file!.type, upsert: true });
+  const { error } = await sb.storage.from('photos').upload(path, file!, { contentType: file!.type || 'image/jpeg' });
   if (error) fail(code, error.message);
   const url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
   await sb.from('items').update({ photo_url: url }).eq('id', item.id);
