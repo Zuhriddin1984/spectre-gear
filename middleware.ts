@@ -40,8 +40,10 @@ async function session(request: NextRequest) {
       },
     },
   });
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  // getSession reads the cookie (and refreshes an expired token); it does not ask the auth
+  // server on every click like getUser did. The database still checks every token.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session && !request.nextUrl.pathname.startsWith('/login')) {
     const url = request.nextUrl.clone();
     // come back to the scanned item (or any page) after signing in
     const next = request.nextUrl.pathname === '/' ? '' : request.nextUrl.pathname + request.nextUrl.search;

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createPlainClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 export function createClient() {
   const store = cookies();
@@ -32,19 +33,34 @@ export function missingEnv() {
   return ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'].filter((k) => !process.env[k]);
 }
 
-export async function getProfile() {
+// The signed-in person's id, read from the session token in the cookies (no network call).
+function tokenSub(token: string) {
+  try {
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).sub as string;
+  } catch {
+    return null;
+  }
+}
+
+// Once per request (cache), shared by the layout, the page and server actions.
+// Checking the session with the auth server on every request took ~300 ms, so the token is
+// only decoded here; the database verifies its signature on the profile query (row level
+// security), so a forged token gets no row and counts as signed out.
+export const getProfile = cache(async () => {
   // Before the site is configured there is no session to read; the login page explains what is missing.
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
   try {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    return { id: user.id, email: user.email ?? '', name: data?.full_name ?? user.email ?? '', role: (data?.role ?? 'tech') as Role };
+    const { data: { session } } = await supabase.auth.getSession();
+    const id = session ? tokenSub(session.access_token) : null;
+    if (!id) return null;
+    const { data } = await supabase.from('profiles').select('full_name, role').eq('id', id).maybeSingle();
+    if (!data) return null;
+    return { id, name: data.full_name ?? '', role: data.role as Role };
   } catch (e) {
     console.error('getProfile failed', e);
     return null;
   }
-}
+});
 
 export type Role = 'admin' | 'store' | 'manager' | 'tech';

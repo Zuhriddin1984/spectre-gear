@@ -6,6 +6,12 @@ import { getTr } from '@/lib/i18n';
 import { roleLabel } from '@/lib/format';
 import { setLang, signOut } from './actions';
 import NavLinks from '@/components/NavLinks';
+import { IBM_Plex_Mono, Manrope, Unbounded } from 'next/font/google';
+
+// Fonts are bundled with the site at build time instead of loading from Google on every visit.
+const display = Unbounded({ subsets: ['latin', 'cyrillic'], weight: ['500', '700'], variable: '--font-display' });
+const body = Manrope({ subsets: ['latin', 'cyrillic'], weight: ['400', '600', '700'], variable: '--font-body' });
+const mono = IBM_Plex_Mono({ subsets: ['latin', 'cyrillic'], weight: ['400', '600'], variable: '--font-mono' });
 
 export const metadata: Metadata = { title: 'Spectre Gear', description: 'Spectrerental equipment management' };
 
@@ -24,11 +30,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ['/staff', t('Ходимлар', 'Сотрудники')],
   ];
   return (
-    <html lang={lang === 'ru' ? 'ru' : 'uz-Cyrl'}>
+    <html lang={lang === 'ru' ? 'ru' : 'uz-Cyrl'} className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" />
       </head>
       <body>
         {me && (
