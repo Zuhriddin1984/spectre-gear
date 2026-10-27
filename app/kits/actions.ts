@@ -14,7 +14,12 @@ export async function createKit(form: FormData) {
   }
   const { data: kit, error } = await sb.from('kits').insert({ name }).select('id').single();
   if (error) redirect('/kits?err=' + encodeURIComponent(error.message));
-  await sb.from('kit_items').insert(items!.map((i) => ({ kit_id: kit!.id, item_id: i.id })));
+  const { error: itemsError } = await sb.from('kit_items').insert(items!.map((i) => ({ kit_id: kit!.id, item_id: i.id })));
+  if (itemsError) {
+    // don't leave an empty kit behind
+    await sb.from('kits').delete().eq('id', kit!.id);
+    redirect('/kits?err=' + encodeURIComponent(itemsError.message));
+  }
   revalidatePath('/kits');
   redirect('/kits');
 }

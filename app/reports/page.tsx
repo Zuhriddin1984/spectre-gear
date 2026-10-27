@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { getCategories } from '@/lib/data';
-import { addDays, daysBetween, dm, money, today } from '@/lib/format';
+import { addDays, daysBetween, dm, localDate, money, today } from '@/lib/format';
 
 export default async function Reports({ searchParams }: { searchParams: { d?: string } }) {
   const { lang, t } = getTr();
@@ -10,10 +10,23 @@ export default async function Reports({ searchParams }: { searchParams: { d?: st
   const span = [30, 60, 90, 365].includes(Number(searchParams.d)) ? Number(searchParams.d) : 60;
   const to = today();
   const from = addDays(to, -span + 1);
-  const [cats, { data: items }, { data: rows }] = await Promise.all([
+  // The database hands out at most 1000 rows per request, so a long period is read in pages.
+  const rentals = async () => {
+    const all: any[] = [];
+    for (let k = 0; ; k += 1000) {
+      const { data } = await sb.from('booking_items').select('id, item_id, start_date, end_date, out_at, returned_at')
+        .not('out_at', 'is', null).lte('start_date', to)
+        // still out past the return date, or returned late, also falls inside the period
+        .or(`end_date.gte.${from},returned_at.gte.${from},returned_at.is.null`)
+        .order('id').range(k, k + 999);
+      all.push(...(data ?? []));
+      if ((data ?? []).length < 1000) return all;
+    }
+  };
+  const [cats, { data: items }, rows] = await Promise.all([
     getCategories(sb),
     sb.from('items').select('id, code, name, category, daily_price').eq('active', true),
-    sb.from('booking_items').select('item_id, start_date, end_date, out_at, returned_at, bookings!inner(state)').lte('start_date', to).gte('end_date', from).neq('bookings.state', 'cancelled'),
+    rentals(),
   ]);
   const byId = new Map((items ?? []).map((i: any) => [i.id, i]));
   const days = new Map<number, number>();
@@ -21,7 +34,7 @@ export default async function Reports({ searchParams }: { searchParams: { d?: st
     if (!r.out_at) continue; // only equipment that actually went out
     const a = r.start_date > from ? r.start_date : from;
     // still-out items count up to today
-    const endReal = r.returned_at ? r.returned_at.slice(0, 10) : to;
+    const endReal = r.returned_at ? localDate(r.returned_at) : to;
     const z = endReal > to ? to : endReal;
     if (z < a) continue;
     days.set(r.item_id, (days.get(r.item_id) ?? 0) + daysBetween(a, z) + 1);

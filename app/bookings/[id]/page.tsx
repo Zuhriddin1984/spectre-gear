@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { loadBooking } from '@/lib/booking';
-import { dm, dmy, money, today } from '@/lib/format';
+import { dm, dmy, localDate, money, today } from '@/lib/format';
 import Status from '@/components/Status';
 import ErrorBox from '@/components/ErrorBox';
 import { cancel, extend, giveAll, returnAll, returnItem } from './actions';
@@ -55,7 +55,7 @@ export default async function BookingPage({ params, searchParams }: { params: { 
                 <td className="code">{l.items.code}</td>
                 <td><Link href={`/items/${l.items.code}`}><b>{l.items.name}</b></Link>{l.items.issue && <span className="flag" title={l.items.issue}> ⚠</span>}{l.return_note && <div className="note">⚠ {l.return_note}</div>}</td>
                 <td className="code">{l.items.serial ?? '—'}</td>
-                <td><Status s={lineState(l)} lang={lang} />{l.returned_at && <span className="note"> {dm(l.returned_at.slice(0, 10))}</span>}</td>
+                <td><Status s={lineState(l)} lang={lang} />{l.returned_at && <span className="note"> {dm(localDate(l.returned_at))}</span>}</td>
                 <td>
                   {l.active && l.out_at && (
                     <form action={returnItem.bind(null, b.id, l.item_id)} className="row" style={{ flexWrap: 'nowrap' }}>

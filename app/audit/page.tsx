@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { getCategories } from '@/lib/data';
-import { dmy } from '@/lib/format';
+import { dmy, localDate } from '@/lib/format';
 import AuditClient from './AuditClient';
 
 export default async function Audit() {
@@ -22,7 +22,7 @@ export default async function Audit() {
         <h2>{t('Олдинги инвентаризациялар', 'Прошлые инвентаризации')}</h2>
         <ul className="log">
           {(past ?? []).map((a: any) => (
-            <li key={a.id}><span className="code">{dmy(a.created_at.slice(0, 10))}</span><span>{name(a.category)}: {a.found}/{a.expected} {a.found < a.expected ? `⚠ ${a.missing_codes.join(', ')}` : '✓'} · {a.profiles?.full_name ?? ''}</span></li>
+            <li key={a.id}><span className="code">{dmy(localDate(a.created_at))}</span><span>{name(a.category)}: {a.found}/{a.expected} {a.found < a.expected ? `⚠ ${a.missing_codes.join(', ')}` : '✓'} · {a.profiles?.full_name ?? ''}</span></li>
           ))}
           {!past?.length && <li className="note">{t('Ҳали инвентаризация ўтказилмаган', 'Инвентаризаций ещё не было')}</li>}
         </ul>

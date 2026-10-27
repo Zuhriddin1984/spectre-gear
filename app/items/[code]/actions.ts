@@ -37,7 +37,8 @@ export async function uploadPhoto(code: string, form: FormData) {
   const { error } = await sb.storage.from('photos').upload(path, file!, { contentType: file!.type || 'image/jpeg' });
   if (error) fail(code, error.message);
   const url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
-  await sb.from('items').update({ photo_url: url }).eq('id', item.id);
+  const { error: saveError } = await sb.from('items').update({ photo_url: url }).eq('id', item.id);
+  if (saveError) fail(code, saveError.message);
   revalidatePath(`/items/${code}`);
   back(code);
 }
@@ -46,7 +47,8 @@ export async function setIssue(code: string, form: FormData) {
   const { sb, item } = await itemByCode(code);
   const text = String(form.get('issue') ?? '').trim();
   if (!text) back(code);
-  await sb.from('items').update({ issue: text }).eq('id', item.id);
+  const { error } = await sb.from('items').update({ issue: text }).eq('id', item.id);
+  if (error) fail(code, error.message);
   await sb.from('item_events').insert({ item_id: item.id, kind: 'issue', text });
   revalidatePath('/', 'layout');
   back(code);
@@ -54,7 +56,8 @@ export async function setIssue(code: string, form: FormData) {
 
 export async function clearIssue(code: string) {
   const { sb, item } = await itemByCode(code);
-  await sb.from('items').update({ issue: null }).eq('id', item.id);
+  const { error } = await sb.from('items').update({ issue: null }).eq('id', item.id);
+  if (error) fail(code, error.message);
   await sb.from('item_events').insert({ item_id: item.id, kind: 'issue_fixed', text: item.issue });
   revalidatePath('/', 'layout');
   back(code);
@@ -64,7 +67,8 @@ export async function toggleRepair(code: string, form: FormData) {
   const { sb, item } = await itemByCode(code);
   const on = !item.in_repair;
   const text = String(form.get('text') ?? '').trim() || null;
-  await sb.from('items').update({ in_repair: on }).eq('id', item.id);
+  const { error } = await sb.from('items').update({ in_repair: on }).eq('id', item.id);
+  if (error) fail(code, error.message);
   await sb.from('item_events').insert({ item_id: item.id, kind: on ? 'repair_out' : 'repair_back', text });
   revalidatePath('/', 'layout');
   back(code);
