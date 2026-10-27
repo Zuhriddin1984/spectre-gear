@@ -5,7 +5,8 @@ import { createClient, missingEnv } from '@/lib/supabase/server';
 // Where to go after signing in: the page the person opened (e.g. a scanned QR), same site only.
 const target = (form: FormData) => {
   const next = String(form.get('next') ?? '');
-  return next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  // browsers read "/\evil.com" like "//evil.com", so backslashes are refused too
+  return next.startsWith('/') && !next.startsWith('//') && !next.includes('\\') ? next : '/';
 };
 
 const fail = (code: string, form: FormData) => {

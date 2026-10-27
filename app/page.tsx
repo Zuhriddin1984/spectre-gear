@@ -11,7 +11,7 @@ export default async function Inventory({ searchParams }: { searchParams: { q?: 
   const { lang, t } = getTr();
   const sb = createClient();
   const q = (searchParams.q ?? '').trim();
-  const limit = Math.min(Number(searchParams.n) || PAGE, 400);
+  const limit = Math.min(Math.max(Math.floor(Number(searchParams.n)) || PAGE, PAGE), 400);
 
   let query = sb.from('item_status').select('*', { count: 'exact' }).order('code');
   if (q) {
@@ -19,7 +19,8 @@ export default async function Inventory({ searchParams }: { searchParams: { q?: 
     query = query.or(`name.ilike.%${s}%,code.ilike.%${s}%,serial.ilike.%${s}%`);
   }
   if (searchParams.cat) query = query.eq('category', searchParams.cat);
-  if (searchParams.st) query = query.eq('status', searchParams.st);
+  // "out" also lists overdue items: they are with a client too (matches the counter above)
+  if (searchParams.st) query = searchParams.st === 'out' ? query.in('status', ['out', 'late']) : query.eq('status', searchParams.st);
   const [{ data, count }, cats, all, late] = await Promise.all([
     query.range(0, limit - 1),
     getCategories(sb),

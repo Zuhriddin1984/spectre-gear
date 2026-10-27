@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { createClient, getProfile } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { getCategories, type Item } from '@/lib/data';
-import { addDays, dm, dmy, today } from '@/lib/format';
+import { addDays, dm, dmy, localDate, today } from '@/lib/format';
 import { itemUrl } from '@/lib/qr';
 import Status from '@/components/Status';
 import ErrorBox from '@/components/ErrorBox';
@@ -136,7 +136,7 @@ export default async function ItemPage({ params, searchParams }: { params: { cod
           <h2>{t('Таъмир ва ҳаракатлар тарихи', 'История ремонтов и действий')}</h2>
           <ul className="timeline">
             {(events.data ?? []).map((e: any, k: number) => (
-              <li key={k}><span className="code">{dmy(e.created_at.slice(0, 10))}</span><span>{(EVENT[e.kind] ?? [e.kind, e.kind])[lang === 'ru' ? 1 : 0]}{e.bookings?.number ? ` · ${e.bookings.number}` : ''}{e.text ? ` — ${e.text}` : ''}</span></li>
+              <li key={k}><span className="code">{dmy(localDate(e.created_at))}</span><span>{(EVENT[e.kind] ?? [e.kind, e.kind])[lang === 'ru' ? 1 : 0]}{e.bookings?.number ? ` · ${e.bookings.number}` : ''}{e.text ? ` — ${e.text}` : ''}</span></li>
             ))}
             {!events.data?.length && <li className="note">{t('Ҳали ҳаракат йўқ', 'Пока нет событий')}</li>}
           </ul>

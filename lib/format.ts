@@ -30,6 +30,11 @@ export function money(n: number, lang: Lang) {
 export function today(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date());
 }
+// Calendar day of a database timestamp in Tashkent (slicing the UTC text gives the
+// previous day for anything done between midnight and 05:00).
+export function localDate(ts: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date(ts));
+}
 export function addDays(d: string, n: number): string {
   const x = new Date(d + 'T00:00:00Z');
   x.setUTCDate(x.getUTCDate() + n);

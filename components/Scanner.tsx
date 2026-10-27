@@ -27,7 +27,10 @@ export default function Scanner({ onCode, labels }: { onCode: (code: string) => 
           last.current = { code, at: now };
           cb.current(code);
         }, () => {});
+        // stopped while the camera was still starting (e.g. permission prompt): turn it off now
+        if (stopped) s.stop().catch(() => {}).finally(() => s.clear?.());
       } catch {
+        if (stopped) return;
         setErr(labels.denied);
         setOn(false);
       }

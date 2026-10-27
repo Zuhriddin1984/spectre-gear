@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getTr } from '@/lib/i18n';
 import { loadBooking } from '@/lib/booking';
-import { dmy, money } from '@/lib/format';
+import { dmy, localDate, money } from '@/lib/format';
 import { company } from '@/lib/company';
 import PrintButton from '@/components/PrintButton';
 
@@ -10,7 +10,7 @@ export default async function Contract({ params }: { params: { id: string } }) {
   const { lang, t } = getTr();
   const b = await loadBooking(createClient(), Number(params.id));
   if (!b) return null;
-  const date = b.created_at.slice(0, 10);
+  const date = localDate(b.created_at);
   return (
     <>
       <div className="row noprint" style={{ marginBottom: 12 }}>
